@@ -1,5 +1,4 @@
 import cv2 as cv
-import argparse
 import time
 import math
 import random
@@ -43,14 +42,6 @@ def getFaceBox(net, frame, conf_threshold=0.7):
                          (255, 0, 0), int(round(frameHeight/150)), 8)
     return frameOpencvDnn, bboxes
 
-
-parser = argparse.ArgumentParser(
-    description='Use this script to run age and gender recognition using OpenCV.')
-parser.add_argument(
-    '--input', help='Path to input image or video file. Skip this argument to capture frames from a camera.')
-
-args = parser.parse_args()
-
 faceProto = "opencv_face_detector.pbtxt"
 faceModel = "opencv_face_detector_uint8.pb"
 
@@ -63,7 +54,7 @@ genderModel = "gender_net.caffemodel"
 MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
 ageList = ['(0-3)', '(4-7)', '(8-14)', '(15-20)',
            '(21-35)', '(36-45)', '(46-56)', '(57-100)']
-genderList = ['Male', 'Female']
+genderList = ['Erkek', 'Kadin']
 
 # Load network
 ageNet = cv.dnn.readNet(ageModel, ageProto)
@@ -80,15 +71,15 @@ class MainWindow(BoxLayout):
 class CamApp(App):
 
     def no_face(self):
-        self.lblOutput.text = "NO face detected, checking next frame"
+        self.lblOutput.text = "Yuz algilanmadi, bir sonraki kare kontrol ediliyor"
        
     def capture(self):
         timestr = time.strftime("%Y%m%d_%H%M%S")
         self.camera.export_to_png("IMG_{}.png".format(timestr))
 
     def output(self, gender, genderPreds, age, agePreds):
-        self.lblOutput.text = "Gender : {}, conf = {:.3f}".format(
-            gender, genderPreds[0].max()) + "\n" + "Age : {}, conf = {:.3f}".format(
+        self.lblOutput.text = "Cinsiyet : {}, oran = {:.3f}".format(
+            gender, genderPreds[0].max()) + "\n" + "Yas : {}, oran = {:.3f}".format(
             age, agePreds[0].max())
 
     def build(self):
@@ -98,8 +89,8 @@ class CamApp(App):
         verticalLayout = MainWindow(orientation='vertical')
 
         verticalLayout.add_widget(self.camera)
-        self.lblOutput = Label(text="initializing...",
-                               font_size=8,
+        self.lblOutput = Label(text="yukleniyor...",
+                               font_size=10,
                                color=(0, 0, 1, 1),
                                size=(50, 50),
                                size_hint=(.4, .1))
@@ -132,12 +123,12 @@ class CamApp(App):
             agePreds = ageNet.forward()
             age = ageList[agePreds[0].argmax()]
             #print("Age Output : {}".format(agePreds))
-            self.output(gender, genderPreds,age,agePreds)
+            self.output(gender, genderPreds, age,agePreds)
             #print("Age : {}, conf = {:.3f}".format(age, agePreds[0].max()))
 
             label = "{},{}".format(gender, age)
             cv.putText(frameFace, label, (bbox[0], bbox[1]-10),
-                       cv.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv.LINE_AA)
+                       cv.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv.LINE_AA)
 
         
         buf1 = cv.flip(frameFace, 0)
